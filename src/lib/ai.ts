@@ -14,7 +14,7 @@ export interface EvaluationResult {
   };
 }
 
-export const evaluatePromptWithGemini = async (
+export const evaluatePrompt = async (
   prompt: string,
   levelTitle: string,
   levelScenario: string

@@ -17,16 +17,12 @@ interface IncomingBody {
   levelScenario?: string;
 }
 
-const DEFAULT_MODEL =
-  process.env.CORP_AI_MODEL?.trim() ||
-  process.env.DEEPSEEK_MODEL?.trim() ||
-  "deepseek-chat";
+const DEFAULT_MODEL = process.env.CORP_AI_MODEL?.trim() || "llama3.1-8b";
 const DEFAULT_BASE_URL =
-  process.env.CORP_AI_BASE_URL?.trim() || "https://api.deepseek.com";
+  process.env.CORP_AI_BASE_URL?.trim() || "https://api.cerebras.ai/v1";
 const DEFAULT_API_PATH =
   process.env.CORP_AI_API_PATH?.trim() || "/chat/completions";
-const API_KEY =
-  process.env.CORP_AI_API_KEY?.trim() || process.env.DEEPSEEK_API_KEY?.trim();
+const API_KEY = process.env.CORP_AI_API_KEY?.trim();
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -70,7 +66,7 @@ export default async function handler(request: Request): Promise<Response> {
   if (!API_KEY) {
     return jsonResponse(500, {
       error:
-        "Server API key is not configured. Set CORP_AI_API_KEY (or DEEPSEEK_API_KEY) in Vercel.",
+        "Server API key is not configured. Set CORP_AI_API_KEY in Vercel.",
     });
   }
 
@@ -136,7 +132,10 @@ export default async function handler(request: Request): Promise<Response> {
     body: JSON.stringify({
       model: DEFAULT_MODEL,
       messages: [{ role: "user", content: systemPrompt }],
+      max_completion_tokens: Number(process.env.CORP_AI_MAX_TOKENS || 1024),
       temperature: 0.1,
+      top_p: 1,
+      stream: false,
     }),
   });
 

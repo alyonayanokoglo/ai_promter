@@ -10,7 +10,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { evaluatePromptWithGemini, EvaluationResult } from "./lib/ai";
+import { evaluatePrompt, EvaluationResult } from "./lib/ai";
 import logoLong from "./img/Logo Long NEW.svg";
 import spinBg from "./img/spin.svg";
 
@@ -104,7 +104,7 @@ const App: React.FC = () => {
     if (!userInput.trim()) return;
 
     setIsEvaluating(true);
-    const result = await evaluatePromptWithGemini(
+    const result = await evaluatePrompt(
       userInput,
       currentLevel.title,
       currentLevel.scenario
