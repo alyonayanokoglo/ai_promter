@@ -1,9 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_GEMINI_API_KEY?: string;
-  /** Опционально, например gemini-2.5-flash или gemini-3-flash-preview */
-  readonly VITE_GEMINI_MODEL?: string;
+  /** Опционально: URL серверного API оценки, по умолчанию /api/evaluate */
+  readonly VITE_EVALUATION_API_URL?: string;
 }
 
 interface ImportMeta {

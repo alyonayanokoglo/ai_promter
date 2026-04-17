@@ -1,10 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
-
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY?.trim() ?? "";
-
-/** Имя модели: см. https://ai.google.dev/gemini-api/docs/models */
-const GEMINI_MODEL =
-  import.meta.env.VITE_GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+const EVALUATION_API_URL =
+  import.meta.env.VITE_EVALUATION_API_URL?.trim() || "/api/evaluate";
 
 export interface EvaluationResult {
   score: number;
@@ -24,77 +19,91 @@ export const evaluatePromptWithGemini = async (
   levelTitle: string,
   levelScenario: string
 ): Promise<EvaluationResult> => {
-  if (!API_KEY) {
-    return {
-      score: 0,
-      evaluationFailed: true,
-      feedback:
-        "Проверка сейчас недоступна: не настроен доступ к сервису оценки. Если вы разработчик — задайте ключ в переменных окружения и перезапустите приложение.",
-      details: {
-        role: { success: false, comment: "Проверка не запускалась" },
-        context: { success: false, comment: "Проверка не запускалась" },
-        task: { success: false, comment: "Проверка не запускалась" },
-        format: { success: false, comment: "Проверка не запускалась" },
-      },
-    };
-  }
-
   try {
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
-
-    const systemPrompt = `
-      Ты — эксперт по промпт-инжинирингу и преподаватель курса по ИИ.
-      Твоя задача — оценить промпт студента для конкретной бизнес-ситуации.
-      
-      СИТУАЦИЯ: ${levelTitle}
-      ЗАДАНИЕ: ${levelScenario}
-      ПРОМПТ СТУДЕНТА: "${prompt}"
-
-      ОЦЕНИВАЙ ПО КРИТЕРИЯМ (0-25 баллов за каждый):
-      1. Role (Роль): Задана ли четкая роль ИИ (например, "Ты — эксперт по продажам")?
-      2. Context (Контекст): Есть ли детали ситуации (кто клиент, какой продукт)?
-      3. Task (Задача): Понятно ли, что именно нужно сделать (глагол действия)?
-      4. Format (Формат): Указан ли формат вывода (таблица, список, тон письма)?
-
-      ВАЖНО: Если студент написал бессмыслицу ("абырвалг", "привет", "околесица"), ставь 0 баллов по всем пунктам.
-
-      ОТВЕТЬ СТРОГО В JSON ФОРМАТЕ:
-      {
-        "score": (общее число 0-100),
-        "feedback": "Общий вывод на 1-2 предложения",
-        "details": {
-          "role": { "success": boolean, "comment": "почему так?" },
-          "context": { "success": boolean, "comment": "почему так?" },
-          "task": { "success": boolean, "comment": "почему так?" },
-          "format": { "success": boolean, "comment": "почему так?" }
-        }
-      }
-    `;
-
-    const response = await ai.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: systemPrompt,
+    const response = await fetch(EVALUATION_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt,
+        levelTitle,
+        levelScenario,
+      }),
     });
 
-    const text = response.text;
-    if (!text) {
-      throw new Error("Пустой ответ модели");
+    const data = (await response.json()) as Partial<EvaluationResult> & {
+      error?: string;
+    };
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        return {
+          score: 0,
+          evaluationFailed: true,
+          feedback:
+            "Лимит запросов временно исчерпан. Попробуйте ещё раз позже или смените модель в настройках сервера.",
+          details: {
+            role: { success: false, comment: "Лимит запросов исчерпан" },
+            context: { success: false, comment: "Лимит запросов исчерпан" },
+            task: { success: false, comment: "Лимит запросов исчерпан" },
+            format: { success: false, comment: "Лимит запросов исчерпан" },
+          },
+        };
+      }
+
+      return {
+        score: 0,
+        evaluationFailed: true,
+        feedback:
+          data.error ??
+          "Сервис проверки недоступен. Проверьте настройки серверного API и ключа.",
+        details: {
+          role: { success: false, comment: "Проверка не выполнена" },
+          context: { success: false, comment: "Проверка не выполнена" },
+          task: { success: false, comment: "Проверка не выполнена" },
+          format: { success: false, comment: "Проверка не выполнена" },
+        },
+      };
     }
 
-    const cleanJson = text.replace(/```json|```/gi, "").trim();
-    return JSON.parse(cleanJson);
-  } catch (error) {
-    console.error("Gemini API Error:", error);
+    if (
+      typeof data.score === "number" &&
+      typeof data.feedback === "string" &&
+      data.details
+    ) {
+      return {
+        score: data.score,
+        feedback: data.feedback,
+        evaluationFailed: Boolean(data.evaluationFailed),
+        details: data.details,
+      };
+    }
+
     return {
       score: 0,
       evaluationFailed: true,
       feedback:
-        "Не удалось связаться с сервисом оценки. Попробуйте ещё раз через минуту. Если ошибка повторяется — обратитесь к организатору или проверьте настройки доступа в консоли разработчика.",
+        "Сервис вернул некорректный ответ. Проверьте конфигурацию backend API.",
       details: {
-        role: { success: false, comment: "Сервис недоступен" },
-        context: { success: false, comment: "Сервис недоступен" },
-        task: { success: false, comment: "Сервис недоступен" },
-        format: { success: false, comment: "Сервис недоступен" },
+        role: { success: false, comment: "Ответ API не распознан" },
+        context: { success: false, comment: "Ответ API не распознан" },
+        task: { success: false, comment: "Ответ API не распознан" },
+        format: { success: false, comment: "Ответ API не распознан" },
+      },
+    };
+  } catch (error) {
+    console.error("Evaluation API Error:", error);
+    return {
+      score: 0,
+      evaluationFailed: true,
+      feedback:
+        "Не удалось связаться с сервисом оценки. Проверьте, что backend API развернут и доступен.",
+      details: {
+        role: { success: false, comment: "Ошибка соединения" },
+        context: { success: false, comment: "Ошибка соединения" },
+        task: { success: false, comment: "Ошибка соединения" },
+        format: { success: false, comment: "Ошибка соединения" },
       },
     };
   }
