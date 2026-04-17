@@ -9,6 +9,8 @@ const GEMINI_MODEL =
 export interface EvaluationResult {
   score: number;
   feedback: string;
+  /** Если проверка не выполнена из‑за ключа/сети — не показывать как «плохой промпт». */
+  evaluationFailed?: boolean;
   details: {
     role: { success: boolean; comment: string };
     context: { success: boolean; comment: string };
@@ -25,13 +27,14 @@ export const evaluatePromptWithGemini = async (
   if (!API_KEY) {
     return {
       score: 0,
+      evaluationFailed: true,
       feedback:
-        "Не задан ключ API. Создайте файл .env.local в корне проекта с переменной VITE_GEMINI_API_KEY=ваш_ключ и перезапустите dev-сервер.",
+        "Проверка сейчас недоступна: не настроен доступ к сервису оценки. Если вы разработчик — задайте ключ в переменных окружения и перезапустите приложение.",
       details: {
-        role: { success: false, comment: "Ключ не настроен" },
-        context: { success: false, comment: "Ключ не настроен" },
-        task: { success: false, comment: "Ключ не настроен" },
-        format: { success: false, comment: "Ключ не настроен" },
+        role: { success: false, comment: "Проверка не запускалась" },
+        context: { success: false, comment: "Проверка не запускалась" },
+        task: { success: false, comment: "Проверка не запускалась" },
+        format: { success: false, comment: "Проверка не запускалась" },
       },
     };
   }
@@ -82,17 +85,17 @@ export const evaluatePromptWithGemini = async (
     return JSON.parse(cleanJson);
   } catch (error) {
     console.error("Gemini API Error:", error);
-    // Fallback if key is invalid (as expected for this specific key)
     return {
-      score: 10,
+      score: 0,
+      evaluationFailed: true,
       feedback:
-        "Ошибка API: проверьте ключ в Google AI Studio (ключ для Gemini API) и что в .env.local указан VITE_GEMINI_API_KEY.",
+        "Не удалось связаться с сервисом оценки. Попробуйте ещё раз через минуту. Если ошибка повторяется — обратитесь к организатору или проверьте настройки доступа в консоли разработчика.",
       details: {
-        role: { success: false, comment: "Не удалось проверить" },
-        context: { success: false, comment: "Не удалось проверить" },
-        task: { success: false, comment: "Не удалось проверить" },
-        format: { success: false, comment: "Не удалось проверить" },
-      }
+        role: { success: false, comment: "Сервис недоступен" },
+        context: { success: false, comment: "Сервис недоступен" },
+        task: { success: false, comment: "Сервис недоступен" },
+        format: { success: false, comment: "Сервис недоступен" },
+      },
     };
   }
 };

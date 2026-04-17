@@ -12,9 +12,18 @@
 }
 
 @layer base {
+  html {
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-brand-surface text-brand-text antialiased font-sans;
     font-feature-settings: "kern" 1;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-width: 0;
   }
 
   p {

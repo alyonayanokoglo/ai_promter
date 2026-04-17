@@ -113,11 +113,12 @@ const App: React.FC = () => {
     setEvaluation(result);
     setIsEvaluating(false);
 
-    // Update scores for this level
-    setScores(prev => ({
-      ...prev,
-      [currentLevel.id]: Math.max(prev[currentLevel.id] || 0, result.score)
-    }));
+    if (!result.evaluationFailed) {
+      setScores((prev) => ({
+        ...prev,
+        [currentLevel.id]: Math.max(prev[currentLevel.id] || 0, result.score),
+      }));
+    }
 
   };
 
@@ -196,27 +197,23 @@ const App: React.FC = () => {
         <div className="absolute bottom-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full bg-brand-primary/15 blur-[120px]" />
       </div>
 
-      <div className="relative z-10 flex min-h-screen flex-col">
+      <div className="relative z-10 flex min-h-screen min-w-0 flex-col">
         {/* Header */}
         <header className="sticky top-0 z-50 border-b border-black/[0.06] bg-white/90 shadow-sm shadow-black/[0.03] backdrop-blur-md">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-            <div className="flex min-w-0 items-center">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
+            <div className="flex min-w-0 flex-wrap items-center justify-center gap-x-3 gap-y-2 sm:justify-start sm:gap-4">
               <img
                 src={logoLong}
                 alt="Prompt.Lab EDU — ИИ тренажёр продаж"
-                className="h-6 w-auto max-w-[min(100%,220px)] object-contain object-left sm:h-7 sm:max-w-none"
+                className="h-6 w-auto max-w-[min(100%,200px)] shrink-0 object-contain object-center sm:h-7 sm:max-w-[240px] sm:object-left md:max-w-none"
               />
             </div>
 
-            <div className="flex items-center gap-6">
-              <div className="hidden flex-col items-end sm:flex">
-                <span className="text-[10px] font-bold uppercase text-brand-text/45">Средняя оценка</span>
-                <span className="font-mono text-lg font-bold text-brand-primary">
-                  {Object.keys(scores).length > 0 ? `${averageGrade5.toFixed(1)} из 5` : "—"}
-                </span>
-              </div>
-              <div className="hidden h-8 w-px bg-black/10 sm:block" />
-              <div className="flex gap-1.5">
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+              <div
+                className="-mx-1 flex min-w-0 justify-center gap-1 overflow-x-auto px-1 pb-0.5 sm:mx-0 sm:justify-end sm:overflow-visible sm:px-0 sm:pb-0"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
                 {levels.map((lvl) => {
                   const isCurrent =
                     gameState === "lobby"
@@ -229,7 +226,7 @@ const App: React.FC = () => {
                   return (
                     <div
                       key={lvl.id}
-                      className={`h-7 w-10 rounded-lg border-2 transition-all duration-300 ${
+                      className={`h-6 w-8 shrink-0 rounded-md border-2 transition-all duration-300 sm:h-7 sm:w-10 sm:rounded-lg ${
                         isCurrent
                           ? "border-brand-primary bg-brand-sky/30 shadow-sm shadow-brand-primary/10"
                           : passed
@@ -246,33 +243,33 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-8 pt-0">
-        <AnimatePresence mode="wait">
+        <main className="mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col px-4 pb-8 pt-0 sm:px-6">
+          <AnimatePresence mode="wait">
           {gameState === "lobby" && (
             <motion.div
               key="lobby"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-1 flex-col items-center justify-center px-4 py-10 text-center"
+              className="flex flex-1 flex-col justify-center py-8 text-center sm:items-center sm:py-10"
             >
-              <div className="mx-auto w-full max-w-3xl">
-                <h2 className="font-display mb-6 text-5xl font-bold uppercase leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
+              <div className="mx-auto w-full min-w-0 max-w-3xl">
+                <h2 className="font-display mb-5 max-w-full text-balance text-[clamp(2.125rem,6.25vw+0.65rem,4.5rem)] font-bold uppercase leading-[1.06] tracking-tight sm:mb-7 sm:leading-[1.05]">
                   <span className="text-brand-text">Промпт-</span>
                   <br />
                   <span className="text-brand-primary">Тренажер</span>
                 </h2>
-                <p className="mx-auto mb-10 max-w-2xl text-lg leading-[1.18] text-brand-text/80 sm:text-xl">
+                <p className="mb-8 max-w-2xl text-base leading-[120%] text-brand-text/80 sm:mx-auto sm:mb-10 sm:text-lg">
                   Пройди 6 уровней обучения от простого студента до эксперта по продажам. Напиши
                   эффективные запросы для ИИ и получи оценку в реальном времени.
                 </p>
                 <button
                   onClick={handleStart}
                   type="button"
-                  className="group inline-flex items-center gap-3 rounded-2xl bg-brand-primary px-10 py-4 text-lg font-bold text-white shadow-lg shadow-brand-primary/30 transition-all hover:bg-brand-sky"
+                  className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-primary px-6 py-3.5 text-base font-bold text-white shadow-lg shadow-brand-primary/30 transition-all hover:bg-brand-sky sm:mx-auto sm:w-auto sm:gap-3 sm:px-10 sm:py-4 sm:text-lg"
                 >
                   Начать обучение
-                  <ChevronRight className="transition-transform group-hover:translate-x-1" />
+                  <ChevronRight className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 sm:h-6 sm:w-6" />
                 </button>
               </div>
             </motion.div>
@@ -284,36 +281,38 @@ const App: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid gap-8 pt-8 lg:grid-cols-12"
+              className="grid min-w-0 gap-6 pt-6 sm:gap-8 sm:pt-8 lg:grid-cols-12"
             >
               {/* Task Sidebar */}
-              <div className="space-y-6 lg:col-span-4">
-                <div className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
-                  <div className="mb-6 flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-primary font-bold text-white">
+              <div className="min-w-0 space-y-6 lg:col-span-4">
+                <div className="rounded-2xl border border-black/8 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
+                  <div className="mb-5 flex items-start gap-3 sm:mb-6">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-primary text-sm font-bold text-white">
                       {currentLevel.id}
                     </span>
-                    <h2 className="text-2xl font-bold text-brand-text">{currentLevel.title}</h2>
+                    <h2 className="min-w-0 flex-1 text-balance text-xl font-bold leading-tight text-brand-text sm:text-2xl">
+                      {currentLevel.title}
+                    </h2>
                   </div>
 
-                  <div className="space-y-6">
-                    <div>
+                  <div className="space-y-5 sm:space-y-6">
+                    <div className="min-w-0">
                       <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-primary">
                         Ситуация
                       </h3>
-                      <p className="rounded-xl border border-black/6 bg-brand-surface p-4 leading-[1.18] text-brand-text/85">
+                      <p className="break-words rounded-xl border border-black/6 bg-brand-surface p-3 text-[15px] leading-snug text-brand-text/85 sm:p-4 sm:text-base sm:leading-[1.18]">
                         {currentLevel.scenario}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3 rounded-xl border border-brand-primary/20 bg-brand-primary/8 px-4 py-3.5">
+                    <div className="flex min-w-0 items-start gap-3 rounded-xl border border-brand-primary/20 bg-brand-primary/8 px-3 py-3 sm:px-4 sm:py-3.5">
                       <Info
-                        className="h-5 w-5 shrink-0 text-brand-primary"
+                        className="mt-0.5 h-5 w-5 shrink-0 text-brand-primary"
                         strokeWidth={2}
                         aria-hidden
                       />
-                      <p className="min-w-0 flex-1 text-sm font-medium leading-snug text-brand-text/90">
-                        Совет: Хороший промпт должен содержать Роль, Контекст и четкое Задание.
+                      <p className="min-w-0 flex-1 break-words text-sm font-medium leading-snug text-brand-text/90">
+                        Совет: хороший промпт должен содержать роль, контекст, четкое задание и формат.
                       </p>
                     </div>
                   </div>
@@ -335,17 +334,17 @@ const App: React.FC = () => {
                             : "border border-transparent bg-transparent text-brand-text/30"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
                         {unlockedLevels.includes(lvl.id) ? (
                           percentToGrade5(scores[lvl.id] ?? 0) >= 3 ? (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                           ) : (
-                            <div className="h-4 w-4 rounded-full border border-current" />
+                            <div className="h-4 w-4 shrink-0 rounded-full border border-current" />
                           )
                         ) : (
-                          <Lock className="h-4 w-4" />
+                          <Lock className="h-4 w-4 shrink-0" />
                         )}
-                        <span className="text-sm font-medium">{lvl.title}</span>
+                        <span className="min-w-0 flex-1 text-sm font-medium leading-snug">{lvl.title}</span>
                       </div>
                       {scores[lvl.id] != null && scores[lvl.id] > 0 && (
                         <span className="font-mono text-xs">{percentToGrade5(scores[lvl.id])}/5</span>
@@ -356,25 +355,25 @@ const App: React.FC = () => {
               </div>
 
               {/* Main Workspace */}
-              <div className="flex h-full flex-col lg:col-span-8">
-                <div className="mb-6 flex flex-grow flex-col rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
-                  <div className="mb-6 flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-brand-text">Редактор промпта</h3>
-                    <div className="text-xs text-brand-text/45">Символов: {userInput.length}</div>
+              <div className="flex min-w-0 flex-col lg:col-span-8">
+                <div className="mb-6 flex flex-col rounded-2xl border border-black/8 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8">
+                  <div className="mb-4 flex min-w-0 flex-col gap-1 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                    <h3 className="min-w-0 text-lg font-bold text-brand-text sm:text-xl">Редактор промпта</h3>
+                    <div className="shrink-0 text-xs text-brand-text/45">Символов: {userInput.length}</div>
                   </div>
 
-                  <div className="group relative min-h-[300px] flex-grow">
+                  <div className="group relative flex min-h-[220px] flex-col sm:min-h-[260px] lg:min-h-[320px]">
                     <textarea
                       value={userInput}
                       onChange={(e) => setUserInput(e.target.value)}
                       placeholder="Введите ваш промпт здесь..."
                       disabled={isEvaluating}
-                      className="h-full w-full resize-none rounded-2xl border border-black/10 bg-brand-surface p-6 font-mono text-lg text-brand-text placeholder:text-brand-text/35 focus:outline-none focus:ring-2 focus:ring-brand-primary/35"
+                      className="min-h-[170px] w-full min-w-0 flex-1 resize-y rounded-2xl border border-black/10 bg-brand-surface p-4 pb-4 font-mono text-base text-brand-text placeholder:text-brand-text/35 focus:outline-none focus:ring-2 focus:ring-brand-primary/35 sm:absolute sm:inset-0 sm:min-h-0 sm:resize-none sm:p-6 sm:pb-20 sm:text-lg"
                     />
-                    <div className="absolute bottom-4 right-4 flex gap-2">
+                    <div className="mt-3 flex flex-wrap items-stretch justify-stretch gap-2 sm:mt-0 sm:absolute sm:bottom-4 sm:right-4 sm:justify-end">
                       <button
                         onClick={() => setUserInput("")}
-                        className="rounded-xl border border-black/8 bg-white p-3 transition-all hover:bg-brand-surface"
+                        className="flex flex-1 items-center justify-center rounded-xl border border-black/8 bg-white p-3 transition-all hover:bg-brand-surface sm:flex-none"
                         title="Очистить"
                         type="button"
                       >
@@ -383,18 +382,18 @@ const App: React.FC = () => {
                       <button
                         onClick={handleCheckPrompt}
                         disabled={isEvaluating || !userInput.trim()}
-                        className="flex items-center gap-2 rounded-xl bg-brand-primary px-8 py-3 font-bold text-white shadow-md shadow-brand-primary/25 transition-all hover:bg-brand-sky disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex min-h-[48px] min-w-0 flex-[2] items-center justify-center gap-2 rounded-xl bg-brand-primary px-4 py-3 text-sm font-bold text-white shadow-md shadow-brand-primary/25 transition-all hover:bg-brand-sky disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none sm:px-8 sm:text-base"
                         type="button"
                       >
                         {isEvaluating ? (
                           <>
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            Судья анализирует...
+                            <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                            <span className="truncate">Анализ</span>
                           </>
                         ) : (
                           <>
-                            <Send className="w-5 h-5" />
-                            Проверить промпт
+                            <Send className="h-5 w-5 shrink-0" />
+                            <span className="truncate">Проверить</span>
                           </>
                         )}
                       </button>
@@ -407,31 +406,48 @@ const App: React.FC = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm"
+                      className="rounded-2xl border border-black/8 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-8"
                     >
-                      <div className="mb-8 flex flex-col gap-5">
+                      <div className="mb-6 flex flex-col gap-5 sm:mb-8">
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-8">
                           <div className="flex shrink-0 flex-col items-start sm:pt-0.5">
-                            <motion.span
-                              className={`font-mono text-3xl font-black tabular-nums leading-none ${
-                                percentToGrade5(evaluation.score) >= 3
-                                  ? "text-emerald-600"
-                                  : "text-brand-primary"
-                              }`}
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              {percentToGrade5(evaluation.score)}
-                            </motion.span>
-                            <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-brand-text/45">
-                              Из 5
-                            </span>
+                            {evaluation.evaluationFailed ? (
+                              <>
+                                <span className="font-mono text-2xl font-black tabular-nums leading-none text-amber-600 sm:text-3xl">
+                                  —
+                                </span>
+                                <span className="mt-1 max-w-[8rem] text-[10px] font-bold uppercase leading-tight tracking-widest text-brand-text/45">
+                                  Оценка не выставлена
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <motion.span
+                                  className={`font-mono text-3xl font-black tabular-nums leading-none ${
+                                    percentToGrade5(evaluation.score) >= 3
+                                      ? "text-emerald-600"
+                                      : "text-brand-primary"
+                                  }`}
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ duration: 0.3 }}
+                                >
+                                  {percentToGrade5(evaluation.score)}
+                                </motion.span>
+                                <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-brand-text/45">
+                                  Из 5
+                                </span>
+                              </>
+                            )}
                           </div>
 
                           <div className="min-w-0 flex-1 space-y-3">
                             <div>
-                              {percentToGrade5(evaluation.score) >= 3 ? (
+                              {evaluation.evaluationFailed ? (
+                                <span className="inline-flex rounded-full bg-amber-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
+                                  Проверка недоступна
+                                </span>
+                              ) : percentToGrade5(evaluation.score) >= 3 ? (
                                 <span className="inline-flex rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700">
                                   Уровень пройден!
                                 </span>
@@ -441,32 +457,39 @@ const App: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                            <p className="text-base font-medium leading-[1.18] text-brand-text sm:text-lg">
-                              «{evaluation.feedback}»
+                            <p className="break-words text-base font-medium leading-snug text-brand-text sm:text-lg sm:leading-[1.18]">
+                              {evaluation.evaluationFailed ? evaluation.feedback : `«${evaluation.feedback}»`}
                             </p>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 border-t border-black/8 pt-5">
+                        <div className="flex flex-wrap items-center gap-3 border-t border-black/8 pt-4 sm:pt-5">
                           <button
                             type="button"
                             onClick={goToNextLevel}
                             className={`inline-flex max-w-full shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all sm:px-5 sm:py-3 ${
-                              percentToGrade5(evaluation.score) >= 3
+                              evaluation.evaluationFailed || percentToGrade5(evaluation.score) >= 3
                                 ? "bg-brand-primary text-white shadow-md shadow-brand-primary/25 hover:bg-brand-sky"
                                 : "border border-black/12 bg-brand-surface text-brand-text hover:bg-black/[0.04]"
                             }`}
                           >
                             {currentLevel.id === levels.length
                               ? "Завершить курс"
-                              : percentToGrade5(evaluation.score) >= 3
+                              : evaluation.evaluationFailed || percentToGrade5(evaluation.score) >= 3
                                 ? "Следующий уровень"
                                 : "Дальше без зачёта"}
                             <ArrowRight className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
                           </button>
-                          {percentToGrade5(evaluation.score) < 3 && currentLevel.id < levels.length && (
-                            <span className="text-xs text-brand-text/45">
-                              Можно перейти к следующему заданию без прохождения порога.
+                          {!evaluation.evaluationFailed &&
+                            percentToGrade5(evaluation.score) < 3 &&
+                            currentLevel.id < levels.length && (
+                              <span className="min-w-0 max-w-full text-xs leading-snug text-brand-text/45">
+                                Можно перейти к следующему заданию без прохождения порога.
+                              </span>
+                            )}
+                          {evaluation.evaluationFailed && currentLevel.id < levels.length && (
+                            <span className="min-w-0 max-w-full text-xs leading-snug text-brand-text/45">
+                              Когда сервис заработает, нажмите «Проверить промпт» ещё раз.
                             </span>
                           )}
                         </div>
@@ -476,19 +499,21 @@ const App: React.FC = () => {
                         {Object.entries(evaluation.details).map(([key, data]) => (
                           <div
                             key={key}
-                            className="rounded-2xl border border-black/6 bg-brand-surface p-4"
+                            className="min-w-0 rounded-2xl border border-black/6 bg-brand-surface p-3 sm:p-4"
                           >
-                            <div className="mb-2 flex items-center gap-2">
+                            <div className="mb-2 flex min-w-0 items-center gap-2">
                               {data.success ? (
-                                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                               ) : (
-                                <AlertCircle className="h-4 w-4 text-brand-coral" />
+                                <AlertCircle
+                                  className={`h-4 w-4 shrink-0 ${evaluation.evaluationFailed ? "text-amber-600" : "text-brand-coral"}`}
+                                />
                               )}
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-brand-text/45">
+                              <span className="min-w-0 truncate text-[10px] font-bold uppercase tracking-widest text-brand-text/45">
                                 {CRITERION_LABELS[key] ?? key}
                               </span>
                             </div>
-                            <p className="text-xs leading-tight text-brand-text/70">{data.comment}</p>
+                            <p className="break-words text-xs leading-snug text-brand-text/70">{data.comment}</p>
                           </div>
                         ))}
                       </div>
@@ -565,7 +590,7 @@ const App: React.FC = () => {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
+          </AnimatePresence>
         </main>
       </div>
     </div>
