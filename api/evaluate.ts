@@ -17,7 +17,16 @@ interface IncomingBody {
   levelScenario?: string;
 }
 
-const DEFAULT_MODEL = process.env.DEEPSEEK_MODEL?.trim() || "deepseek-chat";
+const DEFAULT_MODEL =
+  process.env.CORP_AI_MODEL?.trim() ||
+  process.env.DEEPSEEK_MODEL?.trim() ||
+  "deepseek-chat";
+const DEFAULT_BASE_URL =
+  process.env.CORP_AI_BASE_URL?.trim() || "https://api.deepseek.com";
+const DEFAULT_API_PATH =
+  process.env.CORP_AI_API_PATH?.trim() || "/chat/completions";
+const API_KEY =
+  process.env.CORP_AI_API_KEY?.trim() || process.env.DEEPSEEK_API_KEY?.trim();
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -58,10 +67,10 @@ export default async function handler(request: Request): Promise<Response> {
     return jsonResponse(405, { error: "Method Not Allowed" });
   }
 
-  const apiKey = process.env.DEEPSEEK_API_KEY?.trim();
-  if (!apiKey) {
+  if (!API_KEY) {
     return jsonResponse(500, {
-      error: "Server API key is not configured. Set DEEPSEEK_API_KEY in Vercel.",
+      error:
+        "Server API key is not configured. Set CORP_AI_API_KEY (or DEEPSEEK_API_KEY) in Vercel.",
     });
   }
 
@@ -111,10 +120,17 @@ export default async function handler(request: Request): Promise<Response> {
 }
 `.trim();
 
-  const deepseekResponse = await fetch("https://api.deepseek.com/chat/completions", {
+  const baseUrl = DEFAULT_BASE_URL.endsWith("/")
+    ? DEFAULT_BASE_URL.slice(0, -1)
+    : DEFAULT_BASE_URL;
+  const apiPath = DEFAULT_API_PATH.startsWith("/")
+    ? DEFAULT_API_PATH
+    : `/${DEFAULT_API_PATH}`;
+
+  const modelResponse = await fetch(`${baseUrl}${apiPath}`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -124,19 +140,22 @@ export default async function handler(request: Request): Promise<Response> {
     }),
   });
 
-  const raw = (await deepseekResponse.json()) as {
-    error?: { message?: string };
+  const raw = (await modelResponse.json()) as {
+    error?: { message?: string } | string;
     choices?: Array<{ message?: { content?: string } }>;
   };
 
-  if (!deepseekResponse.ok) {
-    const errorMessage = raw.error?.message || "DeepSeek API request failed.";
-    return jsonResponse(deepseekResponse.status, { error: errorMessage });
+  if (!modelResponse.ok) {
+    const errorMessage =
+      typeof raw.error === "string"
+        ? raw.error
+        : raw.error?.message || "LLM API request failed.";
+    return jsonResponse(modelResponse.status, { error: errorMessage });
   }
 
   const content = raw.choices?.[0]?.message?.content?.trim();
   if (!content) {
-    return jsonResponse(502, { error: "DeepSeek returned an empty response." });
+    return jsonResponse(502, { error: "LLM API returned an empty response." });
   }
 
   const parsed = parseModelJson(content);
