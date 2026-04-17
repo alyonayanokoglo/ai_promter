@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #0f8eff;
+  --color-brand-sky: #58b0ff;
+  --color-brand-coral: #fe5155;
+  --color-brand-surface: #fafafa;
+  --color-brand-text: #1c1c1c;
+
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bounded", "Montserrat", ui-sans-serif, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-surface text-brand-text antialiased font-sans;
+    font-feature-settings: "kern" 1;
+  }
+
+  p {
+    line-height: 1.18;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-brand-surface;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-brand-text/15 transition-colors hover:bg-brand-text/25;
+}
